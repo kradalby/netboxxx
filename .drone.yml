@@ -9,14 +9,6 @@ pipeline:
     when: 
         branch: master
 
-  tag:
-    image: plugins/docker
-    repo: kradalby/netboxxx
-    secrets: [ docker_username, docker_password ]
-    auto_tag: true
-    when:
-      event: tag
-
   deploy:
     image: quay.io/honestbee/drone-kubernetes
     deployment: netboxxx-deployment
@@ -25,9 +17,7 @@ pipeline:
     namespace: netboxxx
     secrets: [ kubernetes_server, kubernetes_cert, kubernetes_token ]
     tag:
-      - ${DRONE_TAG} 
-    when:
-      event: tag
+      - ${DRONE_COMMIT_SHA:0:8}
 
   notify:
     image: drillster/drone-email
