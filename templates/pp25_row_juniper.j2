@@ -1,4 +1,4 @@
-delete interfaces ge-0/0/{{ port - 1 }} unit 0 family ethernet-switching
-set interfaces ge-0/0/{{ port - 1 }} unit 0 description {{ name }}
-set interfaces ge-0/0/{{ port - 1 }} unit 0 family inet address {{ gateway }}/27
+delete interfaces ge-0/0/{{ Port - 1 }} unit 0 family ethernet-switching
+set interfaces ge-0/0/{{ Port - 1 }} unit 0 description {{ Name }}
+set interfaces ge-0/0/{{ Port - 1 }} unit 0 family inet address {{ Gateway }}/27
 
