@@ -22,6 +22,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	nb "github.com/kradalby/netboxxx/netbox"
@@ -31,8 +32,6 @@ import (
 )
 
 var cfgFile string
-var Host string
-var APIKey string
 var TemplateFile string
 
 // rootCmd represents the base command when called without any subcommands
@@ -49,7 +48,17 @@ to quickly create a Cobra application.`,
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 
-		c := nb.NewClient(Host, APIKey)
+		host := viper.GetString("host")
+		if host == "" {
+			log.Fatalln("host is not set, please set the -n flag")
+		}
+
+		apikey := viper.GetString("apikey")
+		if apikey == "" {
+			log.Fatalln("apikey is not set, please set the -k flag")
+		}
+
+		c := nb.NewClient(host, apikey)
 
 		c.PrintTemplate(TemplateFile)
 
@@ -73,13 +82,15 @@ func init() {
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.netboxxx.yaml)")
 
-	rootCmd.PersistentFlags().StringVarP(&Host, "host", "n", "", "netbox host")
-	rootCmd.MarkPersistentFlagRequired("host")
+	rootCmd.PersistentFlags().StringP("host", "n", "", "netbox host (required)")
+	viper.BindPFlag("host", rootCmd.PersistentFlags().Lookup("host"))
+	// rootCmd.MarkPersistentFlagRequired("host")
 
-	rootCmd.PersistentFlags().StringVarP(&APIKey, "apikey", "k", "", "netbox API key")
-	rootCmd.MarkPersistentFlagRequired("apikey")
+	rootCmd.PersistentFlags().StringP("apikey", "k", "", "netbox API key (required)")
+	viper.BindPFlag("apikey", rootCmd.PersistentFlags().Lookup("apikey"))
+	// rootCmd.MarkPersistentFlagRequired("apikey")
 
-	rootCmd.PersistentFlags().StringVarP(&TemplateFile, "template", "t", "", "Jinja template file")
+	rootCmd.PersistentFlags().StringVarP(&TemplateFile, "template", "t", "", "Jinja template file (required)")
 	rootCmd.MarkPersistentFlagRequired("template")
 }
 
