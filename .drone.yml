@@ -1,23 +1,22 @@
 pipeline:
   build:
-    image: plugins/docker
-    repo: kradalby/netboxxx
-    secrets: [ docker_username, docker_password ]
-    tags:
-        - ${DRONE_COMMIT_SHA:0:8}
-        - latest
-    when: 
+      image: golang:1.11.0-stretch
+      commands:
+          - go get github.com/mitchellh/gox
+          - gox -output="dist/{{.Dir}}_{{.OS}}_{{.Arch}}"
+
+      when: 
         branch: master
 
   deploy:
-    image: quay.io/honestbee/drone-kubernetes
-    deployment: netboxxx-deployment
-    repo: kradalby/netboxxx
-    container: netboxxx-container
-    namespace: netboxxx
-    secrets: [ kubernetes_server, kubernetes_cert, kubernetes_token ]
-    tag:
-      - ${DRONE_COMMIT_SHA:0:8}
+      image: appleboy/drone-scp
+      rm: true
+      host: storage.terra.fap.no
+      username: deploy
+      target: /storage/nfs/k8s/builds/netboxxx
+      source: 
+        - dist/*
+      secrets: [ ssh_key ]
 
   notify:
     image: drillster/drone-email
@@ -27,3 +26,5 @@ pipeline:
     recipients: [ kradalby@kradalby.no ]
     when:
       status: [ success, changed, failure ]
+
+

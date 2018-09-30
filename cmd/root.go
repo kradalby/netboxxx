@@ -22,10 +22,8 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 
-	nb "github.com/kradalby/netboxxx/netbox"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -39,23 +37,9 @@ var rootCmd = &cobra.Command{
 	Use:   "netboxxx",
 	Short: "Generate configurations from NetBox IPAM prefixes",
 	// Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
+	// Run: func(cmd *cobra.Command, args []string) {
 
-		host := viper.GetString("host")
-		if host == "" {
-			log.Fatalln("host is not set, please set the -n flag")
-		}
-
-		apikey := viper.GetString("apikey")
-		if apikey == "" {
-			log.Fatalln("apikey is not set, please set the -k flag")
-		}
-
-		c := nb.NewClient(host, apikey)
-
-		c.PrintTemplate(TemplateFile)
-
-	},
+	// },
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

@@ -1,0 +1,10 @@
+enable snmp
+delete snmp community private
+delete snmp community public
+create snmp community pp27ro view PolarParty27 read_only
+create account admin admin password CB29BB41076B89F914B6AEEB79AEF2CC encrypted
+create link_aggregation group_id 1 type lacp
+config link_aggregation group_id 1 ports 47,48 state enable
+config snmp system_location {{ Name }}
+config ipif System ipaddress {{ Addresses.1 }}/{{ Size }}
+config dhcp_auto disable

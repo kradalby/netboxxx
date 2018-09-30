@@ -1,0 +1,23 @@
+# {{ Name }}
+subnet {{ Network }} netmask {{ Netmask }}  {
+    pool {
+        allow unknown-clients;
+        deny members of "dlink";
+        option subnet-mask {{ Netmask }} ;
+        option routers {{ Gateway }};
+        option domain-name "{{ Name|lower }}.pp27.polarparty.no";
+        ddns-domainname "{{ Name|lower }}.pp27.polarparty.no";
+        range {{ Addresses.2 }} {{ End }};
+    }
+    pool {
+        default-lease-time 100;
+        max-lease-time 100;
+        option subnet-mask {{ Netmask }} ;
+        option routers {{ Gateway }};
+        range {{ Addresses.1 }} {{ Addresses.1 }};
+        allow members of "dlink";
+        on commit {
+            execute("/usr/local/bin/dlinkconfig -c /config/{{ Name|lower }} -a {{ Addresses.1 }} -u admin");
+        }
+    }
+}

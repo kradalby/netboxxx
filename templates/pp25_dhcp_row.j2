@@ -4,5 +4,5 @@ subnet {{ Network }} netmask {{ Netmask }}  {
     option routers {{ Gateway }};
     option domain-name "pp25.polarparty.no";
     ddns-domainname "pp25.polarparty.no";
-    range {{ Start }} {{ End }};
+    range {{ Addresses.2 }} {{ End }};
 }

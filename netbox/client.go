@@ -6,12 +6,16 @@ import (
 	"fmt"
 	"github.com/digitalocean/go-netbox/netbox/client"
 	runtimeclient "github.com/go-openapi/runtime/client"
+	"io/ioutil"
+	"os"
+	"path"
 
 	//"github.com/digitalocean/go-netbox/netbox/client/tenancy"
 	cidr "github.com/apparentlymart/go-cidr/cidr"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
 	"net"
+	"strconv"
 
 	"github.com/fatih/structs"
 	"github.com/flosch/pongo2"
@@ -34,12 +38,15 @@ type NetBoxNetwork struct {
 }
 
 type Network struct {
-	Name    string
-	Network string
-	Netmask string
-	Gateway string
-	Start   string
-	End     string
+	Index     string
+	Name      string
+	Network   string
+	Netmask   string
+	Gateway   string
+	Start     string
+	End       string
+	Size      int
+	Addresses []string
 }
 
 func (t TokenAuth) AuthenticateRequest(req runtime.ClientRequest, _ strfmt.Registry) error {
@@ -95,7 +102,7 @@ func (c *Client) PrintNetworks() {
 
 }
 
-func (c *Client) PrintTemplate(templateFile string) {
+func (c *Client) PrintTemplates(templateFile string) {
 
 	networks, err := c.createNetworks()
 	if err != nil {
@@ -116,6 +123,42 @@ func (c *Client) PrintTemplate(templateFile string) {
 		fmt.Println(out)
 
 	}
+
+}
+
+func (c *Client) WriteTemplates(templateFile string) {
+
+	networks, err := c.createNetworks()
+	if err != nil {
+		fmt.Printf("[ERROR] %#v\n", err)
+		panic("Exited")
+	}
+
+	err = os.MkdirAll("out/", 0755)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, network := range networks {
+
+		m := structs.Map(network)
+
+		template := pongo2.Must(pongo2.FromFile(templateFile))
+
+		out, err := template.Execute(m)
+		if err != nil {
+			panic(err)
+		}
+
+		outFile := path.Join("out", network.Name)
+		data := []byte(out)
+		err = ioutil.WriteFile(outFile, data, 0644)
+		if err != nil {
+			panic(err)
+		}
+
+	}
+
 }
 
 func (c *Client) createNetworks() ([]*Network, error) {
@@ -133,8 +176,10 @@ func (c *Client) createNetworks() ([]*Network, error) {
 		gateway := cidr.Inc(networkAddress)
 		start := cidr.Inc(gateway)
 		end := cidr.Dec(broadcast)
+		size, _ := nbNet.IPNet.Mask.Size()
 
 		networks[index] = &Network{
+			Index:   strconv.FormatInt(int64(index), 10),
 			Name:    nbNet.Description,
 			Network: networkAddress.String(),
 			Netmask: fmt.Sprintf("%d.%d.%d.%d",
@@ -142,12 +187,39 @@ func (c *Client) createNetworks() ([]*Network, error) {
 				nbNet.IPNet.Mask[1],
 				nbNet.IPNet.Mask[2],
 				nbNet.IPNet.Mask[3]),
-			Gateway: gateway.String(),
-			Start:   start.String(),
-			End:     end.String(),
+			Gateway:   gateway.String(),
+			Start:     start.String(),
+			End:       end.String(),
+			Size:      size,
+			Addresses: allAddressesInIPNetAsString(nbNet.IPNet),
 		}
 	}
 
+	fmt.Println(networks)
 	return networks, nil
+}
 
+func allAddressesInIPNet(ipNet *net.IPNet) []net.IP {
+	count := int(cidr.AddressCount(ipNet)) - 2
+
+	ips := make([]net.IP, count)
+	ip := ipNet.IP
+
+	for c := 0; c < count; c++ {
+		ip = cidr.Inc(ip)
+		ips[c] = ip
+	}
+
+	return ips
+}
+
+func allAddressesInIPNetAsString(ipNet *net.IPNet) []string {
+
+	ips := allAddressesInIPNet(ipNet)
+	strings := make([]string, len(ips))
+	for index, ip := range ips {
+		strings[index] = ip.String()
+	}
+
+	return strings
 }
