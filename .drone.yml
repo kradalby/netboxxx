@@ -16,6 +16,7 @@ pipeline:
       target: /storage/nfs/k8s/builds/netboxxx
       source: 
         - dist/*
+      strip_components: 1
       secrets: [ ssh_key ]
 
   notify:
