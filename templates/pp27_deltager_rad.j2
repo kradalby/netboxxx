@@ -3,6 +3,7 @@ delete interfaces ge-0/0/{{ Name|upper }}b unit 0
 set interfaces ge-0/0/{{ Name|upper }}a ether-options 802.3ad ae{{ Index }} 
 set interfaces ge-0/0/{{ Name|upper }}b ether-options 802.3ad ae{{ Index }} 
 set interfaces ae{{ Index }} aggregated-ether-options minimum-links 1 
+set interfaces ae{{ Index }} aggregated-ether-options lacp active
 set interfaces ae{{ Index }} unit 0 description {{ Name }}
 set interfaces ae{{ Index }} unit 0 family inet address {{ Gateway }}/{{ Size }}
 
